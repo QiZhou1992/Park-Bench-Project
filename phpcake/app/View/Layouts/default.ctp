@@ -42,7 +42,25 @@ $cakeDescription = __d('cake_dev', 'CakePHP: the rapid development php framework
 			<h1><?php echo $this->Html->link($cakeDescription, 'http://cakephp.org'); ?></h1>
 		</div>
 		<div id="content">
+			<div style="text-align:right;">
+				<?php if($logged_in){
+					echo "Welcome";
+					echo "    ";
+					echo $current_user['Email'];
+					echo "    ";
+					echo $this->Html->link('Logout',array('controller'=>'Users','action'=>'logout'));
+					echo "    ";
+					echo $this->Html->link('ConnectToFacebook',array('controller'=>'Users','action'=>'connectFacebook'),array('class'=>'button','target'=>'_blank'));
+				}
+				else{
+					echo $this->Html->link('Login',array('controller'=>'Users','action'=>'login'));
+				
+				}
 
+
+				?>
+					
+			</div>
 			<?php echo $this->Session->flash(); ?>
 
 			<?php echo $this->fetch('content'); ?>

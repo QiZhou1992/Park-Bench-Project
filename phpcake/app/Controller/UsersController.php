@@ -20,6 +20,7 @@
  */
 
 App::uses('Controller', 'Controller');
+App::import('vendor','Facebook',array('file'=>'facebook.php'));
 
 /**
  * Application Controller
@@ -71,7 +72,7 @@ public function register(){
 public function login(){
 	if($this->request->is('post')){
 		if($this->Auth->login()){
-			$this->redirect($this->Auth->redirect());
+			$this->redirect(array('controller'=>'Users','action'=>'index'));
 		}
 		else{
 			$this->Session->setFlash('your Email or password is wrong');
@@ -80,6 +81,36 @@ public function login(){
 }
 public function logout(){
 	$this->redirect($this->Auth->logout());
+}
+public function connectFacebook(){
+	 $config = array(
+    'appId' => '492159944228947',
+    'secret' => '0e2a701f336a22e90cfdb452b0f4765f',
+    'allowSignedRequest' => false // 
+    );
+	$facebook=new Facebook($config);
+	$facebook_user=$facebook->getUser();
+	if(!$facebook_user){
+	$facebook_login=$facebook->getLoginUrl( array(
+                       'scope' => 'publish_stream,create_event'
+                       ));
+	$this->redirect($facebook_login);
+	$facebook->setExtendedAccessToken();
+	}
+	else{
+	$params = array(
+	        'method' => 'fql.query',
+	        'query' => "SELECT name,sex FROM user WHERE uid={$facebook_user}"
+	         );
+	$result = $facebook->api($params);
+	$currentUser=$this->Auth->user();
+	$id=$currentUser['id'];
+	$this->User->read(NULL,39);
+	$this->User->set(array('facebookId'=>$facebook_user,'name'=>$result[0]['name'],'gender'=>$result[0]['sex'],'id'=>$id,'accessToken'=>$facebook->getAccessToken()));
+	$this->User->save();
+	$this->redirect(array('controller'=>'Users','action'=>'index'));
+	}
+
 }
 
 }

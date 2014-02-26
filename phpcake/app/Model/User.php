@@ -20,6 +20,7 @@
  */
 
 App::uses('Model', 'Model');
+App::uses('SimplePasswordHasher', 'Controller/Component/Auth');
 
 /**
  * Application model for Cake.
@@ -33,8 +34,7 @@ class User extends AppModel {
 	var $name = 'User';
 	public $components = array(
 		'Session',
-		'Auth',
-		'Security'
+		'Auth'
 	
 	);
 	var $validate =array(
@@ -76,13 +76,15 @@ class User extends AppModel {
 	   $this->invalidate('Password confirmation','Your password must match password confirmation ');
 		return false;
 	}
-	public function beforeSave($options = array()) {
-    if (isset($this->data['User']['password'])) {
-        $passwordHasher = $this->Auth->passwordHasher($this->data['User']['password']);
-        $this->data['User']['password'] =$passwordHasher;
-        };
-    return true;
-}
+	 public function beforeSave($options = array()) {
+        if (!$this->id) {
+            $passwordHasher = new SimplePasswordHasher();
+            $this->data['User']['Password'] = $passwordHasher->hash(
+                $this->data['User']['Password']
+            );
+        }
+        return true;
+    }
 
 }
 ?>
