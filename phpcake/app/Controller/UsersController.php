@@ -33,6 +33,10 @@ App::import('vendor','Facebook',array('file'=>'facebook.php'));
  */
 class UsersController extends AppController {
 public $name='Users';
+public $components = array('Paginator');
+public $paginate = array(
+        'limit' => 10
+);
 public $helpers = array('Form','Html','Js');
 public function beforeFilter(){
 	parent::beforeFilter();
@@ -111,6 +115,32 @@ public function connectFacebook(){
 	$this->redirect(array('controller'=>'Users','action'=>'index'));
 	}
 
+}
+public function chooseLike(){
+	$currentUser=$this->Auth->user();
+	$id=$currentUser['id'];
+		$params1 = array(
+					'fields'=>array('name','gender','facebookId','accessToken'),
+					'limit'=>1,
+					'conditions'=>array('id'=>$id),
+					);
+	$TheUser=$this->User->find('all',$params1);
+	if(strlen($TheUser[0]['User']['accessToken'])<5){
+	$this->redirect(array('controller'=>'Users','action'=>'connectFacebook'));
+	}
+	else{
+	 $config = array(
+    'appId' => '492159944228947',
+    'secret' => '0e2a701f336a22e90cfdb452b0f4765f',
+    'allowSignedRequest' => false // 
+    );
+	$facebook=new Facebook($config);
+	$facebook->setAccessToken($TheUser[0]['User']['accessToken']);
+	$result=$facebook->api('/me/friends','get');
+	$data=$result['data'];
+	$this->Paginator->settings = $this->paginate;
+	$this->set('result',$data);
+	}
 }
 
 }
