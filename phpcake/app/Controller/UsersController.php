@@ -37,9 +37,10 @@ public $components = array('Paginator');
 public $paginate = array(
         'limit' => 10
 );
-public $helpers = array('Form','Html','Js');
+public $helpers = array('Form','Html','Js','Paginator');
 public function beforeFilter(){
 	parent::beforeFilter();
+	$this->loadModel('friend');
 }
 public function index(){
 	$params1 = array(
@@ -111,7 +112,13 @@ public function connectFacebook(){
 	$id=$currentUser['id'];
 	$this->User->read(NULL,39);
 	$this->User->set(array('facebookId'=>$facebook_user,'name'=>$result[0]['name'],'gender'=>$result[0]['sex'],'id'=>$id,'accessToken'=>$facebook->getAccessToken()));
-	$this->User->save();
+	$result=$facebook->api('/me/friends','get');
+	$data=$result['data'];
+	foreach($data as $person){
+	$savedata=array('name'=>$person['name'],'facebookId'=>$person['id'],'accessToken'=>$facebook->getAccessToken());
+	$this->friend->save($savedata);
+	}
+	$this->paginate = array('limit'=>5,'condition'=>array('accessToken'=>$facebook->getAccessToken()));
 	$this->redirect(array('controller'=>'Users','action'=>'index'));
 	}
 
@@ -129,17 +136,8 @@ public function chooseLike(){
 	$this->redirect(array('controller'=>'Users','action'=>'connectFacebook'));
 	}
 	else{
-	 $config = array(
-    'appId' => '492159944228947',
-    'secret' => '0e2a701f336a22e90cfdb452b0f4765f',
-    'allowSignedRequest' => false // 
-    );
-	$facebook=new Facebook($config);
-	$facebook->setAccessToken($TheUser[0]['User']['accessToken']);
-	$result=$facebook->api('/me/friends','get');
-	$data=$result['data'];
-	$this->Paginator->settings = $this->paginate;
-	$this->set('result',$data);
+	$this->Paginator->settings=array('limit'=>5,'condition'=>array('accessToken'=>$TheUser[0]['User']['accessToken']));
+	$this->set('result',$this->paginate('friend'));
 	}
 }
 

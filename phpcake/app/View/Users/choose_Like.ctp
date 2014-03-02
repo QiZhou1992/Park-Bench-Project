@@ -10,7 +10,7 @@
               );
 				$params = array(
 	            'method' => 'fql.query',
-	           'query' => "SELECT name,pic_big,url FROM profile WHERE id={$person['id']}"
+	           'query' => "SELECT name,pic_big,url FROM profile WHERE id={$person['friend']['facebookId']}"
 	         );
 			  $facebook=new Facebook($config);
 	         $data= $facebook->api($params);
@@ -21,4 +21,10 @@
 			</tr>
 	
 	<?php endforeach; ?>
+	<?php echo $this->Paginator->numbers(array(
+  'modulus' => 10,   /* Controls the number of page links to display */
+  'first' => '< First',
+  'last' => 'Last >',
+  'before' => ' ', 'after' => ' ')
+  );?>
 </table>
